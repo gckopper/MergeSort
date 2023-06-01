@@ -31,7 +31,6 @@
 
 package com.example;
 
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -77,16 +76,20 @@ public class MyBenchmark {
             "128",
             "256",
             "512",
+            "1000",
             "1024",
             "2048",
             "4096",
             "8192",
+            "10000",
             "16384",
             "32768",
             "65536",
+            "100000",
             "131072",
             "262144",
             "524288",
+            "1000000",
             "1048576",
             "2097152",
             "4194304",
@@ -124,16 +127,11 @@ public class MyBenchmark {
 
     }
 
-    // @Benchmark
-    public void testMethod() {
-        MergeSort.sort(array);
-    }
-
     @Benchmark
     @Warmup(iterations = 100, time = 1, timeUnit = TimeUnit.MILLISECONDS)
     @Measurement(iterations = 100, time = 1, timeUnit = TimeUnit.MILLISECONDS)
     public void testChanges() {
-        tracker = MergeSort2.sort(array);
+        tracker = MergeSort.sort(array);
     }
 
     @TearDown(Level.Trial)
