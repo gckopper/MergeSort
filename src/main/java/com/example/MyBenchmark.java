@@ -46,16 +46,33 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Warmup(iterations = 5, time = 5)
-@Measurement(iterations = 5, time = 5)
 @Fork(1)
 @State(Scope.Benchmark)
 public class MyBenchmark {
 
     private final long seed = 42;
 
-    @Setup
+    private int[] array;
+
+    private Integer tracker = 0;
+
+    @Param({
+            "ORDERED", // Ordered
+            "REVERSED", // Reversed
+            "RANDOM" // Random
+    })
+    private Order order;
+
+    @Param({
+            "10",
+            "50",
+            "100",
+    })
+    private int size;
+
+    @Setup()
     public void setup() {
+        tracker = 0;
         array = new int[size];
         switch (order) {
             case ORDERED:
@@ -84,30 +101,29 @@ public class MyBenchmark {
 
     }
 
-    @Param({
-            "ORDERED", // Ordered
-            "REVERSED", // Reversed
-            "RANDOM" // Random
-    })
-    private Order order;
-
-    @Param({
-            "10",
-            "50",
-            "100",
-    })
-    private int size;
-
-    private int[] array;
-
-    @Benchmark
+    // @Benchmark
     public void testMethod() {
         MergeSort.sort(array);
+    }
+
+    @Benchmark
+    @Warmup(iterations = 1, time = 1, timeUnit = TimeUnit.MILLISECONDS)
+    @Measurement(iterations = 1, time = 1, timeUnit = TimeUnit.MILLISECONDS)
+    public void testChanges() {
+        tracker = MergeSort2.sort(array);
+        System.out.println(tracker);
+    }
+
+    @TearDown
+    public void check() {
+        System.out.printf("Number of changes to the array: %d\n", tracker);
     }
 
     public static void main(String[] args) throws RunnerException {
         Options opt = new OptionsBuilder()
                 .include(MyBenchmark.class.getSimpleName())
+                .param("size", "10")
+                .param("order", "REVERSED")
                 .forks(1)
                 .build();
 
