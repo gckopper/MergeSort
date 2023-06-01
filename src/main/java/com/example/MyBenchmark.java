@@ -36,6 +36,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.BenchmarkParams;
@@ -54,7 +55,7 @@ public class MyBenchmark {
 
     private int[] array;
 
-    private Integer tracker = 0;
+    private int tracker = 0;
 
     @Param({
             "ORDERED", // Ordered
@@ -70,7 +71,7 @@ public class MyBenchmark {
     })
     private int size;
 
-    @Setup()
+    @Setup(Level.Invocation)
     public void setup() {
         tracker = 0;
         array = new int[size];
@@ -90,7 +91,7 @@ public class MyBenchmark {
                     array[i] = i;
                 }
                 Random rng = new Random(seed);
-                List<Integer> integerArray = Arrays.stream(array).boxed().toList();
+                List<Integer> integerArray = Arrays.stream(array).boxed().collect(Collectors.toList());
                 Collections.shuffle(integerArray, rng);
                 array = integerArray.stream().mapToInt(Integer::intValue).toArray();
                 break;
@@ -107,11 +108,10 @@ public class MyBenchmark {
     }
 
     @Benchmark
-    @Warmup(iterations = 1, time = 1, timeUnit = TimeUnit.MILLISECONDS)
-    @Measurement(iterations = 1, time = 1, timeUnit = TimeUnit.MILLISECONDS)
+    @Warmup(iterations = 10, time = 1, timeUnit = TimeUnit.SECONDS)
+    @Measurement(iterations = 10, time = 1, timeUnit = TimeUnit.SECONDS)
     public void testChanges() {
         tracker = MergeSort2.sort(array);
-        System.out.println(tracker);
     }
 
     @TearDown
@@ -122,8 +122,6 @@ public class MyBenchmark {
     public static void main(String[] args) throws RunnerException {
         Options opt = new OptionsBuilder()
                 .include(MyBenchmark.class.getSimpleName())
-                .param("size", "10")
-                .param("order", "REVERSED")
                 .forks(1)
                 .build();
 
