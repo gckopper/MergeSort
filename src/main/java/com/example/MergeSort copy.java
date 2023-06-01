@@ -35,12 +35,10 @@ class MergeSort2 {
                 arr[k] = L[leftIndex];
                 leftIndex++;
                 if (rightIndex != 0)
-                    tracker = tracker + 1;
+                    tracker++;
             } else {
                 arr[k] = R[rightIndex];
                 rightIndex++;
-                if (leftIndex != leftSize)
-                    tracker = tracker + 1;
             }
             k++;
         }
