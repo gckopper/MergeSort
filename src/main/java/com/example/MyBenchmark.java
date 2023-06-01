@@ -31,6 +31,10 @@
 
 package com.example;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -44,6 +48,8 @@ import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
+import static java.nio.file.StandardOpenOption.CREATE;
+import static java.nio.file.StandardOpenOption.APPEND;
 
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
@@ -57,6 +63,9 @@ public class MyBenchmark {
 
     private int tracker = 0;
 
+    Path file = Path.of(
+            "trocas.txt");
+
     @Param({
             "ORDERED", // Ordered
             "REVERSED", // Reversed
@@ -65,9 +74,22 @@ public class MyBenchmark {
     private Order order;
 
     @Param({
-            "10",
-            "50",
-            "100",
+            "128",
+            "256",
+            "512",
+            "1024",
+            "2048",
+            "4096",
+            "8192",
+            "16384",
+            "32768",
+            "65536",
+            "131072",
+            "262144",
+            "524288",
+            "1048576",
+            "2097152",
+            "4194304",
     })
     private int size;
 
@@ -108,18 +130,30 @@ public class MyBenchmark {
     }
 
     @Benchmark
-    @Warmup(iterations = 10, time = 1, timeUnit = TimeUnit.SECONDS)
-    @Measurement(iterations = 10, time = 1, timeUnit = TimeUnit.SECONDS)
+    @Warmup(iterations = 100, time = 1, timeUnit = TimeUnit.MILLISECONDS)
+    @Measurement(iterations = 100, time = 1, timeUnit = TimeUnit.MILLISECONDS)
     public void testChanges() {
         tracker = MergeSort2.sort(array);
     }
 
-    @TearDown
-    public void check() {
-        System.out.printf("Number of changes to the array: %d\n", tracker);
+    @TearDown(Level.Trial)
+    public void check(BenchmarkParams b) {
+        StringBuilder dados = new StringBuilder(b.getBenchmark());
+        dados.append(',');
+        dados.append(size);
+        dados.append(',');
+        dados.append(order.toString());
+        dados.append(',');
+        dados.append(tracker);
+        dados.append('\n');
+        try {
+            Files.writeString(file, dados.toString(), CREATE, APPEND);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    public static void main(String[] args) throws RunnerException {
+    public static void main(String[] args) throws RunnerException, IOException {
         Options opt = new OptionsBuilder()
                 .include(MyBenchmark.class.getSimpleName())
                 .forks(1)
